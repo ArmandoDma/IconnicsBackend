@@ -1,0 +1,104 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <title>Registro</title>
+  <script src="https://cdn.jsdelivr.net/npm/axios/dist/axios.min.js"></script>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      background: linear-gradient(to right, #4facfe, #00f2fe);
+      height: 100vh;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      margin: 0;
+    }
+
+    .register-container {
+      background-color: #fff;
+      padding: 40px 30px;
+      border-radius: 12px;
+      box-shadow: 0 8px 20px rgba(0, 0, 0, 0.2);
+      width: 320px;
+      text-align: center;
+    }
+
+    .register-container h2 {
+      margin-bottom: 30px;
+      color: #333;
+    }
+
+    .register-container input,
+    .register-container select {
+      width: 100%;
+      padding: 12px 15px;
+      margin: 10px 0;
+      border: 1px solid #ccc;
+      border-radius: 8px;
+      font-size: 14px;
+    }
+
+    .register-container button {
+      width: 100%;
+      padding: 12px;
+      margin-top: 20px;
+      border: none;
+      border-radius: 8px;
+      background: linear-gradient(to right, #4facfe, #00f2fe);
+      color: white;
+      font-size: 16px;
+      cursor: pointer;
+      transition: 0.3s;
+    }
+
+    .register-container button:hover {
+      opacity: 0.9;
+    }
+
+    .error-message {
+      color: red;
+      font-size: 14px;
+      margin-top: 10px;
+    }
+  </style>
+</head>
+<body>
+  <div class="register-container">
+    <h2>Registrar usuario</h2>
+    <input type="text" id="nombre" placeholder="Nombre">
+    <input type="email" id="correo" placeholder="Correo">
+    <input type="password" id="contraseña" placeholder="Contraseña">
+    <select id="rol">
+      <option value="Deportista">Deportista</option>
+      <option value="Entrenador">Entrenador</option>
+      <option value="Administrador">Administrador</option>
+    </select>
+    <button onclick="registrar()">Registrarse</button>
+    <div id="error" class="error-message"></div>
+  </div>
+
+  <script>
+    async function registrar() {
+      const nombre = document.getElementById('nombre').value;
+      const correo = document.getElementById('correo').value;
+      const contraseña = document.getElementById('contraseña').value;
+      const rol = document.getElementById('rol').value;
+      const errorDiv = document.getElementById('error');
+      errorDiv.textContent = '';
+
+      try {
+        const respuesta = await axios.post('http://localhost:3000/usuarios', {
+          nombre,
+          correo,
+          contrasena: contraseña,
+          rol
+        });
+        alert(respuesta.data.msg);
+      } catch (error) {
+        errorDiv.textContent = error.response?.data?.msg || 'Error al registrar usuario';
+      }
+    }
+  </script>
+</body>
+</html>

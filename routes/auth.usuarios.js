@@ -4,7 +4,8 @@ import {
   getUsuarioById,
   createUsuario,
   updateUsuario,
-  deleteUsuario
+  deleteUsuario,
+  loginUsuario  // <-- importar login
 } from "../controllers/usuariosController.js";
 
 const router = express.Router();
@@ -23,5 +24,8 @@ router.put("/:id", updateUsuario);
 
 // Eliminar un usuario
 router.delete("/:id", deleteUsuario);
+
+// Login de usuario
+router.post("/login", loginUsuario);
 
 export default router;
