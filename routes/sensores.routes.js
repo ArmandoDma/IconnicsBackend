@@ -5,7 +5,7 @@ import {
   createSensor,
   updateSensor,
   deleteSensor
-} from "../controllers/sensoresController.js";
+} from "../controllers/sensores.controller.js";
 
 const router = express.Router();
 

@@ -6,7 +6,7 @@ import {
   createZonasDeportiva,
   updateZonasDeportiva,
   deleteZonasDeportiva
-} from '../controllers/ZonasDeportivasController.js';
+} from '../controllers/ZonasDeportivas.controller.js';
 
 const router = Router();
 

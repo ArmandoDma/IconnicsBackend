@@ -1,53 +1,127 @@
-// controllers/auth.controller.js
-import bcrypt from 'bcrypt';
-import jwt from 'jsonwebtoken';
 import db from '../config/db.js';
+import bcrypt from 'bcrypt';
 
-export const register = async (req, res) => {
-  const { nombre, correo, contraseña, rol } = req.body;
-
-  try {
-    const hashedPassword = await bcrypt.hash(contraseña, 10);
-
-    const query = `
-      INSERT INTO usuarios (nombre, correo, contraseña, rol)
-      VALUES (?, ?, ?, ?)
-    `;
-    db.query(query, [nombre, correo, hashedPassword, rol], (err, result) => {
-      if (err) return res.status(500).json({ error: 'Error al registrar usuario' });
-      res.status(201).json({ mensaje: 'Usuario registrado correctamente' });
-    });
-  } catch (error) {
-    res.status(500).json({ error: 'Error interno del servidor' });
-  }
+// Obtener todos los usuarios
+export const getUsuarios = async (req, res) => {
+    try {
+        const [rows] = await db.promise().query("SELECT * FROM Usuarios");
+        res.json(rows);
+    } catch (error) {
+        console.error(error);
+        res.status(500).json({ msg: "Error al obtener usuarios", error });
+    }
 };
 
-export const login = async (req, res) => {
-  const { correo, contraseña } = req.body;
+// Obtener un usuario por ID
+export const getUsuarioById = async (req, res) => {
+    try {
+        const [rows] = await db.promise().query(
+            "SELECT * FROM Usuarios WHERE id_usuario = ?", 
+            [req.params.id]
+        );
+        if (rows.length === 0)
+            return res.status(404).json({ msg: "Usuario no encontrado" });
+        res.json(rows[0]);
+    } catch (error) {
+        console.error(error);
+        res.status(500).json({ msg: "Error al obtener el usuario", error });
+    }
+};
 
-  try {
-    const query = `SELECT * FROM usuarios WHERE correo = ?`;
-    db.query(query, [correo], async (err, results) => {
-      if (err || results.length === 0) {
-        return res.status(401).json({ error: 'Credenciales inválidas' });
-      }
+// Crear un nuevo usuario con contraseña segura
+export const createUsuario = async (req, res) => {
+    try {
+        const { nombre, edad, rol, peso, altura, deporte, correo, contrasena } = req.body;
 
-      const usuario = results[0];
-      const match = await bcrypt.compare(contraseña, usuario.contraseña);
+        // Hashear la contraseña
+        const hashedPassword = await bcrypt.hash(contrasena, 10);
 
-      if (!match) {
-        return res.status(401).json({ error: 'Contraseña incorrecta' });
-      }
+        const [result] = await db.promise().query(
+            "INSERT INTO Usuarios (nombre, edad, rol, peso, altura, deporte, correo, contrasena) VALUES (?, ?, ?, ?, ?, ?, ?, ?)",
+            [nombre, edad, rol, peso, altura, deporte, correo, hashedPassword]
+        );
 
-      const token = jwt.sign(
-        { id: usuario.id, rol: usuario.rol },
-        process.env.JWT_SECRET,
-        { expiresIn: '2h' }
-      );
+        res.status(201).json({ 
+            msg: "Usuario creado correctamente", 
+            id: result.insertId 
+        });
+    } catch (error) {
+        console.error(error);
+        res.status(500).json({ msg: "Error al crear usuario", error });
+    }
+};
 
-      res.status(200).json({ mensaje: 'Login exitoso', token });
-    });
-  } catch (error) {
-    res.status(500).json({ error: 'Error interno del servidor' });
-  }
+// Login de usuario con bcrypt
+export const loginUsuario = async (req, res) => {
+    try {
+        const { correo, contrasena } = req.body;
+
+        const [rows] = await db.promise().query(
+            "SELECT * FROM Usuarios WHERE correo = ?",
+            [correo]
+        );
+
+        if (rows.length === 0) {
+            return res.status(401).json({ msg: "Correo o contraseña incorrectos" });
+        }
+
+        const usuario = rows[0];
+        const match = await bcrypt.compare(contrasena, usuario.contrasena);
+
+        if (!match) {
+            return res.status(401).json({ msg: "Correo o contraseña incorrectos" });
+        }
+
+        res.json({
+            msg: "Login exitoso",
+            usuario: { id: usuario.id_usuario, nombre: usuario.nombre, correo: usuario.correo, rol: usuario.rol }
+        });
+    } catch (error) {
+        console.error(error);
+        res.status(500).json({ msg: "Error al iniciar sesión", error });
+    }
+};
+
+// Actualizar un usuario existente
+export const updateUsuario = async (req, res) => {
+    try {
+        const { id } = req.params;
+        const { nombre, edad, rol, peso, altura, deporte, correo, contrasena } = req.body;
+
+        // Si llega contraseña, hashearla
+        const hashedPassword = contrasena ? await bcrypt.hash(contrasena, 10) : undefined;
+
+        const [result] = await db.promise().query(
+            "UPDATE Usuarios SET nombre=?, edad=?, rol=?, peso=?, altura=?, deporte=?, correo=?, contrasena=COALESCE(?, contrasena) WHERE id_usuario=?",
+            [nombre, edad, rol, peso, altura, deporte, correo, hashedPassword, id]
+        );
+
+        if (result.affectedRows === 0)
+            return res.status(404).json({ msg: "Usuario no encontrado para actualizar" });
+
+        res.json({ msg: "Usuario actualizado correctamente" });
+    } catch (error) {
+        console.error(error);
+        res.status(500).json({ msg: "Error al actualizar usuario", error });
+    }
+};
+
+// Eliminar un usuario
+export const deleteUsuario = async (req, res) => {
+    try {
+        const { id } = req.params;
+
+        const [result] = await db.promise().query(
+            "DELETE FROM Usuarios WHERE id_usuario = ?", 
+            [id]
+        );
+
+        if (result.affectedRows === 0)
+            return res.status(404).json({ msg: "Usuario no encontrado para eliminar" });
+
+        res.json({ msg: "Usuario eliminado correctamente" });
+    } catch (error) {
+        console.error(error);
+        res.status(500).json({ msg: "Error al eliminar usuario (Puede tener dependencias)", error });
+    }
 };

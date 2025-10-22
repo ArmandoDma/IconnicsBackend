@@ -5,7 +5,7 @@ import {
   createProtocolo,
   updateProtocolo,
   deleteProtocolo
-} from "../controllers/protocolosController.js";
+} from "../controllers/protocolos.controller.js";
 
 const router = express.Router();
 

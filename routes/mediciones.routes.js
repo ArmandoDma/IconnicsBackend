@@ -5,7 +5,7 @@ import {
   createMedicion,
   updateMedicion,
   deleteMedicion
-} from "../controllers/medicionesController.js";
+} from "../controllers/mediciones.controller.js";
 
 const router = express.Router();
 

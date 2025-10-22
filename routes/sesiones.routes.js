@@ -5,7 +5,7 @@ import {
   createSesion,
   updateSesion,
   deleteSesion
-} from "../controllers/sesionesController.js";
+} from "../controllers/sesiones.controller.js";
 
 const router = express.Router();
 

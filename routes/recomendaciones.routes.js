@@ -5,7 +5,7 @@ import {
   createRecomendacion,
   updateRecomendacion,
   deleteRecomendacion
-} from "../controllers/recomendacionesController.js";
+} from "../controllers/recomendaciones.controller.js";
 
 const router = express.Router();
 

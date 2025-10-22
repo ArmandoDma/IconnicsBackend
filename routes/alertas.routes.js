@@ -5,7 +5,7 @@ import {
   createAlerta,
   updateAlerta,
   deleteAlerta
-} from "../controllers/alertasController.js";
+} from "../controllers/alertas.controller.js";
 
 const router = express.Router();
 

@@ -4,8 +4,7 @@ import path from 'path';
 import { fileURLToPath } from 'url';
 
 import alertasRoutes from './routes/alertas.routes.js';
-import authRoutes from './routes/auth.routes.js'; 
-import usuariosRoutes from './routes/auth.usuarios.js'; 
+import usuariosRoutes from './routes/auth.routes.js'; 
 import medicionesRoutes from './routes/mediciones.routes.js';
 import protocolosRoutes from './routes/protocolos.routes.js';
 import recomendacionesRoutes from './routes/recomendaciones.routes.js';
@@ -36,7 +35,6 @@ app.get('/', (req, res) => {
 
 // Rutas API
 app.use('/api/alertas', alertasRoutes);
-app.use('/api/auth', authRoutes);
 app.use('/api/usuarios', usuariosRoutes);
 app.use('/api/mediciones', medicionesRoutes);
 app.use('/api/protocolos', protocolosRoutes);
