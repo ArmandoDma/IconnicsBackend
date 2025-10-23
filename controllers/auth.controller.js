@@ -1,127 +1,149 @@
 import db from '../config/db.js';
 import bcrypt from 'bcrypt';
+import validator from 'validator';
+import jwt from 'jsonwebtoken'; // npm install jsonwebtoken
+import dotenv from 'dotenv'; // npm install dotenv (para variables de entorno)
 
-// Obtener todos los usuarios
+dotenv.config(); // Cargar variables de entorno
+
+// Validar entradas para prevenir inyecciones o payloads maliciosos
+const sanitizeInput = (input) => {
+    if (typeof input === 'string') return validator.escape(input.trim());
+    return input;
+};
+
+// Obtener todos los usuarios (solo campos públicos)
 export const getUsuarios = async (req, res) => {
     try {
-        const [rows] = await db.promise().query("SELECT * FROM Usuarios");
+        const [rows] = await db.promise().query(
+            "SELECT id_usuario, nombre, edad, rol, peso, altura, deporte, correo, contrasena FROM Usuarios"
+        );
         res.json(rows);
     } catch (error) {
         console.error(error);
-        res.status(500).json({ msg: "Error al obtener usuarios", error });
+        res.status(500).json({ msg: "Error al obtener usuarios" });
     }
 };
 
-// Obtener un usuario por ID
+// Obtener un usuario por ID (validando número)
 export const getUsuarioById = async (req, res) => {
     try {
+        const id = parseInt(req.params.id, 10);
+        if (isNaN(id)) return res.status(400).json({ msg: "ID inválido" });
         const [rows] = await db.promise().query(
-            "SELECT * FROM Usuarios WHERE id_usuario = ?", 
-            [req.params.id]
+            "SELECT id_usuario, nombre, edad, rol, peso, altura, deporte, correo, contrasena FROM Usuarios WHERE id_usuario = ?",
+            [id]
         );
         if (rows.length === 0)
             return res.status(404).json({ msg: "Usuario no encontrado" });
         res.json(rows[0]);
     } catch (error) {
         console.error(error);
-        res.status(500).json({ msg: "Error al obtener el usuario", error });
+        res.status(500).json({ msg: "Error al obtener el usuario" });
     }
 };
 
-// Crear un nuevo usuario con contraseña segura
+// Crear usuario
 export const createUsuario = async (req, res) => {
     try {
         const { nombre, edad, rol, peso, altura, deporte, correo, contrasena } = req.body;
-
-        // Hashear la contraseña
-        const hashedPassword = await bcrypt.hash(contrasena, 10);
-
+        if (!validator.isEmail(correo)) return res.status(400).json({ msg: "Correo inválido" });
+        if (!contrasena || contrasena.length < 8) return res.status(400).json({ msg: "Contraseña demasiado corta" });
+        const cleanData = {
+            nombre: sanitizeInput(nombre),
+            rol: sanitizeInput(rol),
+            deporte: sanitizeInput(deporte),
+            correo: correo.trim().toLowerCase()
+        };
+        const hashedPassword = await bcrypt.hash(contrasena, 12);
         const [result] = await db.promise().query(
-            "INSERT INTO Usuarios (nombre, edad, rol, peso, altura, deporte, correo, contrasena) VALUES (?, ?, ?, ?, ?, ?, ?, ?)",
-            [nombre, edad, rol, peso, altura, deporte, correo, hashedPassword]
+            `INSERT INTO Usuarios (nombre, edad, rol, peso, altura, deporte, correo, contrasena)
+             VALUES (?, ?, ?, ?, ?, ?, ?, ?)`,
+            [cleanData.nombre, edad, cleanData.rol, peso, altura, cleanData.deporte, cleanData.correo, hashedPassword]
         );
-
-        res.status(201).json({ 
-            msg: "Usuario creado correctamente", 
-            id: result.insertId 
-        });
+        res.status(201).json({ msg: "Usuario creado correctamente", id: result.insertId });
     } catch (error) {
         console.error(error);
-        res.status(500).json({ msg: "Error al crear usuario", error });
+        res.status(500).json({ msg: "Error al crear usuario" });
     }
 };
 
-// Login de usuario con bcrypt
+// Login de usuario con generación de token
 export const loginUsuario = async (req, res) => {
     try {
         const { correo, contrasena } = req.body;
-
-        const [rows] = await db.promise().query(
-            "SELECT * FROM Usuarios WHERE correo = ?",
-            [correo]
-        );
-
-        if (rows.length === 0) {
-            return res.status(401).json({ msg: "Correo o contraseña incorrectos" });
-        }
-
+        if (!correo || !contrasena) return res.status(400).json({ msg: "Faltan credenciales" });
+        if (!validator.isEmail(correo)) return res.status(400).json({ msg: "Correo inválido" });
+        const [rows] = await db.promise().query("SELECT * FROM Usuarios WHERE correo = ?", [correo.trim().toLowerCase()]);
+        if (rows.length === 0) return res.status(401).json({ msg: "Correo o contraseña incorrectos" });
         const usuario = rows[0];
         const match = await bcrypt.compare(contrasena, usuario.contrasena);
+        if (!match) return res.status(401).json({ msg: "Correo o contraseña incorrectos" });
 
-        if (!match) {
-            return res.status(401).json({ msg: "Correo o contraseña incorrectos" });
-        }
+        // Generar token JWT
+        const payload = { id: usuario.id_usuario, correo: usuario.correo, rol: usuario.rol };
+        const token = jwt.sign(payload, process.env.JWT_SECRET, { expiresIn: '1h' }); // Token expira en 1 hora
 
-        res.json({
-            msg: "Login exitoso",
-            usuario: { id: usuario.id_usuario, nombre: usuario.nombre, correo: usuario.correo, rol: usuario.rol }
-        });
+        // Guardar token en la tabla Tokens
+        const fechaExpiracion = new Date(Date.now() + 3600000); // 1 hora en milisegundos
+        await db.promise().query(
+            `INSERT INTO Tokens (id_usuario, token, fecha_expiracion)
+             VALUES (?, ?, ?)`,
+            [usuario.id_usuario, token, fechaExpiracion]
+        );
+
+        // Devolver usuario seguro y token
+        const safeUser = { id: usuario.id_usuario, nombre: usuario.nombre, correo: usuario.correo, rol: usuario.rol };
+        res.json({ msg: "Login exitoso", usuario: safeUser, token });
     } catch (error) {
         console.error(error);
-        res.status(500).json({ msg: "Error al iniciar sesión", error });
+        res.status(500).json({ msg: "Error al iniciar sesión" });
     }
 };
 
-// Actualizar un usuario existente
+// Actualizar usuario
 export const updateUsuario = async (req, res) => {
     try {
-        const { id } = req.params;
+        const id = parseInt(req.params.id, 10);
+        if (isNaN(id)) return res.status(400).json({ msg: "ID inválido" });
         const { nombre, edad, rol, peso, altura, deporte, correo, contrasena } = req.body;
-
-        // Si llega contraseña, hashearla
-        const hashedPassword = contrasena ? await bcrypt.hash(contrasena, 10) : undefined;
-
+        const hashedPassword = contrasena ? await bcrypt.hash(contrasena, 12) : undefined;
         const [result] = await db.promise().query(
-            "UPDATE Usuarios SET nombre=?, edad=?, rol=?, peso=?, altura=?, deporte=?, correo=?, contrasena=COALESCE(?, contrasena) WHERE id_usuario=?",
-            [nombre, edad, rol, peso, altura, deporte, correo, hashedPassword, id]
+            `UPDATE Usuarios
+             SET nombre=?, edad=?, rol=?, peso=?, altura=?, deporte=?, correo=?, contrasena=COALESCE(?, contrasena)
+             WHERE id_usuario=?`,
+            [
+                sanitizeInput(nombre), edad, sanitizeInput(rol), peso, altura,
+                sanitizeInput(deporte), correo.trim().toLowerCase(),
+                hashedPassword, id
+            ]
         );
-
         if (result.affectedRows === 0)
             return res.status(404).json({ msg: "Usuario no encontrado para actualizar" });
-
         res.json({ msg: "Usuario actualizado correctamente" });
     } catch (error) {
         console.error(error);
-        res.status(500).json({ msg: "Error al actualizar usuario", error });
+        res.status(500).json({ msg: "Error al actualizar usuario" });
     }
 };
 
-// Eliminar un usuario
+// Eliminar usuario (incluye eliminación de tokens asociados)
 export const deleteUsuario = async (req, res) => {
     try {
-        const { id } = req.params;
-
+        const id = parseInt(req.params.id, 10);
+        if (isNaN(id)) return res.status(400).json({ msg: "ID inválido" });
+        // Eliminar tokens asociados
+        await db.promise().query("DELETE FROM Tokens WHERE id_usuario = ?", [id]);
+        // Eliminar usuario
         const [result] = await db.promise().query(
-            "DELETE FROM Usuarios WHERE id_usuario = ?", 
+            "DELETE FROM Usuarios WHERE id_usuario = ?",
             [id]
         );
-
         if (result.affectedRows === 0)
-            return res.status(404).json({ msg: "Usuario no encontrado para eliminar" });
-
+            return res.status(404).json({ msg: "Usuario no encontrado" });
         res.json({ msg: "Usuario eliminado correctamente" });
     } catch (error) {
         console.error(error);
-        res.status(500).json({ msg: "Error al eliminar usuario (Puede tener dependencias)", error });
+        res.status(500).json({ msg: "Error al eliminar usuario" });
     }
 };

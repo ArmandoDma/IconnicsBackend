@@ -79,7 +79,8 @@
       errorDiv.textContent = '';
 
       try {
-        const respuesta = await axios.post('http://localhost:3000/usuarios/login', { correo, contrasena: contraseña });
+        const respuesta = await axios.post('http://localhost:3000/api/usuarios/login', { correo, contrasena: contraseña });
+
         alert('Login exitoso');
         console.log(respuesta.data.usuario);
       } catch (error) {
