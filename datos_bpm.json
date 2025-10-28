@@ -1,0 +1,11 @@
+[
+  {
+    "id_sensor": 3,
+    "tipo_sensor": "Sensor fijo",
+    "ubicacion": "Vestidor Principal",
+    "estado": "130",
+    "id_usuario": 4,
+    "id_zona": 1,
+    "timestamp": "2025-10-24T02:56:22.719Z"
+  }
+]

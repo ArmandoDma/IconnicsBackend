@@ -28,6 +28,13 @@ app.use(express.json());
 // 🧩 Servir archivos estáticos (HTML, CSS, JS)
 app.use(express.static(path.join(__dirname, 'public')));
 
+// ✅ Servir el archivo JSON con los datos BPM
+app.get('/datos_bpm.json', (req, res) => {
+  res.sendFile(
+    'C:/Users/Bulmarozr/Desktop/Bulmaro Zavala Ruiz/UTSC/10A/Desarrollo movil integral/IconnicsBackend/datos_bpm.json'
+  );
+});
+
 // Ruta base de prueba
 app.get('/', (req, res) => {
   res.send('API de Iconnics corriendo con imports 🚀');
@@ -49,4 +56,5 @@ app.use('/api/zonasdeportivas', zonasDeportivasRoutes);
 app.listen(PORT, () => {
   console.log(`🚀 Servidor corriendo en http://localhost:${PORT}`);
   console.log(`🌐 Archivos estáticos en http://localhost:${PORT}/login.html`);
+  console.log(`📊 Datos BPM disponibles en http://localhost:${PORT}/datos_bpm.json`);
 });

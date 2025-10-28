@@ -1,0 +1,125 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <title>Home</title>
+  <script src="https://cdn.jsdelivr.net/npm/axios/dist/axios.min.js"></script>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      background: linear-gradient(to right, #4facfe, #00f2fe);
+      height: 100vh;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      margin: 0;
+    }
+
+    .home-container {
+      background-color: #fff;
+      padding: 40px 30px;
+      border-radius: 12px;
+      box-shadow: 0 8px 20px rgba(0, 0, 0, 0.2);
+      width: 350px;
+      text-align: center;
+    }
+
+    .home-container h2 {
+      margin-bottom: 25px;
+      color: #333;
+    }
+
+    .user-info {
+      text-align: left;
+      background-color: #f9f9f9;
+      padding: 15px;
+      border-radius: 8px;
+      border: 1px solid #ddd;
+      font-size: 14px;
+    }
+
+    .user-info p {
+      margin: 6px 0;
+    }
+
+    .bpm-status {
+      margin-top: 20px;
+      padding: 10px;
+      background: linear-gradient(to right, #4facfe, #00f2fe);
+      color: white;
+      border-radius: 8px;
+      font-weight: bold;
+      font-size: 16px;
+    }
+
+    button {
+      margin-top: 20px;
+      width: 100%;
+      padding: 10px;
+      background: linear-gradient(to right, #4facfe, #00f2fe);
+      border: none;
+      border-radius: 8px;
+      color: white;
+      font-size: 16px;
+      cursor: pointer;
+      transition: 0.3s;
+    }
+
+    button:hover {
+      opacity: 0.9;
+    }
+  </style>
+</head>
+<body>
+  <div class="home-container">
+    <h2>Datos del usuario</h2>
+    <div id="userData" class="user-info">
+      <p><strong>Estado (BPM):</strong> Leyendo...</p>
+    </div>
+    <div id="bpmStatus" class="bpm-status">Analizando...</div>
+    <button onclick="cerrarSesion()">Cerrar sesión</button>
+  </div>
+
+  <script>
+    async function cargarDatos() {
+      try {
+        // 🔹 Carga el archivo JSON servido por tu servidor
+        const bpmRes = await axios.get('http://localhost:3000/datos_bpm.json', { cache: false });
+        const datos = bpmRes.data[0]; // Toma el primer objeto
+        const estado = parseInt(datos.estado);
+
+        // 🔹 Muestra el estado en el panel
+        document.getElementById('userData').innerHTML = `
+          <p><strong>ID Sensor:</strong> ${datos.id_sensor}</p>
+          <p><strong>Ubicación:</strong> ${datos.ubicacion}</p>
+          <p><strong>ID Usuario:</strong> ${datos.id_usuario}</p>
+          <p><strong>ID Zona:</strong> ${datos.id_zona}</p>
+          <p><strong>Estado (BPM):</strong> ${estado}</p>
+          <p><strong>Fecha:</strong> ${new Date(datos.timestamp).toLocaleString()}</p>
+        `;
+
+        // 🔹 Evalúa el estado de los BPM
+        let mensaje = '';
+        if (estado < 40) mensaje = `⚠️ Riesgo: BPM muy bajos (${estado})`;
+        else if (estado > 140) mensaje = `🚨 Riesgo: BPM muy altos (${estado})`;
+        else mensaje = `✅ BPM estables (${estado})`;
+
+        document.getElementById('bpmStatus').textContent = mensaje;
+
+      } catch (error) {
+        console.error('Error al cargar datos:', error);
+        document.getElementById('userData').innerHTML =
+          `<p style="color:red;">Error al cargar datos BPM</p>`;
+      }
+    }
+
+    function cerrarSesion() {
+      window.location.href = 'login.html';
+    }
+
+    // 🔹 Carga inicial y actualización cada 2.4 segundos
+    cargarDatos();
+    setInterval(cargarDatos, 2400);
+  </script>
+</body>
+</html>
