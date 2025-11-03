@@ -15,7 +15,7 @@ import tokensRoutes from './routes/tokens.routes.js';
 import zonasDeportivasRoutes from './routes/ZonasDeportivas.routes.js';
 
 const app = express();
-const PORT = process.env.PORT || 3000;
+const PORT = process.env.PORT || 8080;
 
 // Para obtener __dirname en módulos ES
 const __filename = fileURLToPath(import.meta.url);
