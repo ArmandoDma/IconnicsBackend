@@ -1,0 +1,43 @@
+# Node.js
+node_modules/
+.env
+dist/
+build/
+*.log
+npm-debug.log*
+
+# Archivos estáticos temporales
+*.tmp
+*.bak
+
+# IDEs y editores
+.vscode/
+.idea/
+*.sublime-project
+*.sublime-workspace
+
+# Sistema operativo
+.DS_Store
+Thumbs.db
+
+# Zeabur / Docker (si usas)
+.dockerignore
+Dockerfile
+*.container
+
+# Archivos de pruebas o mocks
+__tests__/
+coverage/
+*.test.js
+*.spec.js
+
+# Archivos de base de datos locales (si los usas)
+*.sqlite
+*.db
+*.sql
+
+# Otros
+.env.local
+.env.production
+.env.development
+.env.test
