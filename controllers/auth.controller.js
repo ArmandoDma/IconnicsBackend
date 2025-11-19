@@ -49,9 +49,25 @@ export const createUsuario = async (req, res) => {
         const { nombre, edad, rol, peso, altura, deporte, correo, contrasena } = req.body;
         if (!validator.isEmail(correo)) return res.status(400).json({ msg: "Correo inválido" });
         if (!contrasena || contrasena.length < 8) return res.status(400).json({ msg: "Contraseña demasiado corta" });
+        
+        // Validar y convertir campos numéricos
+        const edadNum = parseInt(edad);
+        const pesoNum = parseFloat(peso);
+        const alturaNum = parseFloat(altura);
+
+        if (isNaN(edadNum) || isNaN(pesoNum) || isNaN(alturaNum)) {
+            return res.status(400).json({ msg: "Edad, peso o altura inválidos" });
+        };
+
+        const rolesValidos = ['Deportista', 'Entrenador', 'Administrador'];
+        const rolLimpio = rol.trim();
+        if (!rolesValidos.includes(rolLimpio)) {
+            return res.status(400).json({ msg: "Rol inválido. Usa: Deportista, Entrenador o Administrador." });
+        }
+
         const cleanData = {
             nombre: sanitizeInput(nombre),
-            rol: sanitizeInput(rol),
+            rol: rolLimpio,
             deporte: sanitizeInput(deporte),
             correo: correo.trim().toLowerCase()
         };
