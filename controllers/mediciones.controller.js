@@ -2,7 +2,7 @@ import db from '../config/db.js';
 
 export const getMediciones = async (req, res) => {
   try {
-    const [rows] = await db.promise().query("SELECT * FROM Mediciones");
+    const [rows] = await db.query("SELECT * FROM Mediciones");
     res.json(rows);
   } catch (error) {
     console.error(error);
@@ -12,7 +12,7 @@ export const getMediciones = async (req, res) => {
 
 export const getMedicionById = async (req, res) => {
   try {
-    const [rows] = await db.promise().query("SELECT * FROM Mediciones WHERE id_medicion = ?", [req.params.id]);
+    const [rows] = await db.query("SELECT * FROM Mediciones WHERE id_medicion = ?", [req.params.id]);
     if (rows.length === 0) return res.status(404).json({ msg: "Medicion no encontrada" });
     res.json(rows[0]);
   } catch (error) {
@@ -24,7 +24,7 @@ export const getMedicionById = async (req, res) => {
 export const createMedicion = async (req, res) => {
   try {
     const { id_sensor, hidratacion, temperatura, frecuencia_cardiaca, fecha_hora } = req.body;
-    const [result] = await db.promise().query(
+    const [result] = await db.query(
       "INSERT INTO Mediciones (id_sensor, hidratacion, temperatura, frecuencia_cardiaca, fecha_hora) VALUES (?, ?, ?, ?, ?)",
       [id_sensor, hidratacion, temperatura, frecuencia_cardiaca, fecha_hora]
     );
@@ -39,7 +39,7 @@ export const updateMedicion = async (req, res) => {
   try {
     const { id } = req.params;
     const { id_sensor, hidratacion, temperatura, frecuencia_cardiaca, fecha_hora } = req.body;
-    const [result] = await db.promise().query(
+    const [result] = await db.query(
       "UPDATE Mediciones SET id_sensor=?, hidratacion=?, temperatura=?, frecuencia_cardiaca=?, fecha_hora=? WHERE id_medicion=?",
       [id_sensor, hidratacion, temperatura, frecuencia_cardiaca, fecha_hora, id]
     );
@@ -54,7 +54,7 @@ export const updateMedicion = async (req, res) => {
 export const deleteMedicion = async (req, res) => {
   try {
     const { id } = req.params;
-    const [result] = await db.promise().query("DELETE FROM Mediciones WHERE id_medicion=?", [id]);
+    const [result] = await db.query("DELETE FROM Mediciones WHERE id_medicion=?", [id]);
     if (result.affectedRows === 0) return res.status(404).json({ msg: "Medicion no encontrada" });
     res.json({ msg: "Medicion eliminada correctamente" });
   } catch (error) {

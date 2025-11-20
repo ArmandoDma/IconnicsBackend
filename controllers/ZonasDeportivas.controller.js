@@ -4,7 +4,7 @@ import db from '../config/db.js'; // tu conexión actual
 // Obtener todas las ZonasDeportivas
 export const getZonasDeportivas = async (req, res) => {
     try {
-        const [rows] = await db.promise().query("SELECT * FROM ZonasDeportivas");
+        const [rows] = await db.query("SELECT * FROM ZonasDeportivas");
         res.json(rows); // devuelve [] si está vacía
     } catch (error) {
         console.error(error);
@@ -15,7 +15,7 @@ export const getZonasDeportivas = async (req, res) => {
 // Obtener una ZonaDeportiva por ID
 export const getZonasDeportivaById = async (req, res) => {
     try {
-        const [rows] = await db.promise().query(
+        const [rows] = await db.query(
             "SELECT * FROM ZonasDeportivas WHERE id_zona = ?", 
             [req.params.id]
         );
@@ -33,7 +33,7 @@ export const createZonasDeportiva = async (req, res) => {
     try {
         const { nombre_zona, ubicacion, capacidad } = req.body;
 
-        const [result] = await db.promise().query(
+        const [result] = await db.query(
             "INSERT INTO ZonasDeportivas (nombre_zona, ubicacion, capacidad) VALUES (?, ?, ?)",
             [nombre_zona, ubicacion, capacidad]
         );
@@ -54,7 +54,7 @@ export const updateZonasDeportiva = async (req, res) => {
         const { id } = req.params;
         const { nombre_zona, ubicacion, capacidad } = req.body;
 
-        const [result] = await db.promise().query(
+        const [result] = await db.query(
             "UPDATE ZonasDeportivas SET nombre_zona=?, ubicacion=?, capacidad=? WHERE id_zona=?",
             [nombre_zona, ubicacion, capacidad, id]
         );
@@ -74,7 +74,7 @@ export const deleteZonasDeportiva = async (req, res) => {
     try {
         const { id } = req.params;
 
-        const [result] = await db.promise().query(
+        const [result] = await db.query(
             "DELETE FROM ZonasDeportivas WHERE id_zona=?",
             [id]
         );

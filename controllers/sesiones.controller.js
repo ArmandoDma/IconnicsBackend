@@ -2,7 +2,7 @@ import db from '../config/db.js';
 
 export const getSesiones = async (req, res) => {
   try {
-    const [rows] = await db.promise().query("SELECT * FROM Sesiones");
+    const [rows] = await db.query("SELECT * FROM Sesiones");
     res.json(rows);
   } catch (error) {
     console.error(error);
@@ -12,7 +12,7 @@ export const getSesiones = async (req, res) => {
 
 export const getSesionById = async (req, res) => {
   try {
-    const [rows] = await db.promise().query("SELECT * FROM Sesiones WHERE id_sesion = ?", [req.params.id]);
+    const [rows] = await db.query("SELECT * FROM Sesiones WHERE id_sesion = ?", [req.params.id]);
     if (rows.length === 0) return res.status(404).json({ msg: "Sesion no encontrada" });
     res.json(rows[0]);
   } catch (error) {
@@ -24,7 +24,7 @@ export const getSesionById = async (req, res) => {
 export const createSesion = async (req, res) => {
   try {
     const { id_usuario, duracion, esfuerzo, clima, temperatura_ambiente, fecha } = req.body;
-    const [result] = await db.promise().query(
+    const [result] = await db.query(
       "INSERT INTO Sesiones (id_usuario, duracion, esfuerzo, clima, temperatura_ambiente, fecha) VALUES (?, ?, ?, ?, ?, ?)",
       [id_usuario, duracion, esfuerzo, clima, temperatura_ambiente, fecha]
     );
@@ -39,7 +39,7 @@ export const updateSesion = async (req, res) => {
   try {
     const { id } = req.params;
     const { id_usuario, duracion, esfuerzo, clima, temperatura_ambiente, fecha } = req.body;
-    const [result] = await db.promise().query(
+    const [result] = await db.query(
       "UPDATE Sesiones SET id_usuario=?, duracion=?, esfuerzo=?, clima=?, temperatura_ambiente=?, fecha=? WHERE id_sesion=?",
       [id_usuario, duracion, esfuerzo, clima, temperatura_ambiente, fecha, id]
     );
@@ -54,7 +54,7 @@ export const updateSesion = async (req, res) => {
 export const deleteSesion = async (req, res) => {
   try {
     const { id } = req.params;
-    const [result] = await db.promise().query("DELETE FROM Sesiones WHERE id_sesion=?", [id]);
+    const [result] = await db.query("DELETE FROM Sesiones WHERE id_sesion=?", [id]);
     if (result.affectedRows === 0) return res.status(404).json({ msg: "Sesion no encontrada" });
     res.json({ msg: "Sesion eliminada correctamente" });
   } catch (error) {

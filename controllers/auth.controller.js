@@ -15,7 +15,7 @@ const sanitizeInput = (input) => {
 // Obtener todos los usuarios (solo campos públicos)
 export const getUsuarios = async (req, res) => {
     try {
-        const [rows] = await db.promise().query(
+        const [rows] = await db.query(
             "SELECT id_usuario, nombre, edad, rol, peso, altura, deporte, correo, contrasena FROM Usuarios"
         );
         res.json(rows);
@@ -30,7 +30,7 @@ export const getUsuarioById = async (req, res) => {
     try {
         const id = parseInt(req.params.id, 10);
         if (isNaN(id)) return res.status(400).json({ msg: "ID inválido" });
-        const [rows] = await db.promise().query(
+        const [rows] = await db.query(
             "SELECT id_usuario, nombre, edad, rol, peso, altura, deporte, correo, contrasena FROM Usuarios WHERE id_usuario = ?",
             [id]
         );
@@ -72,7 +72,7 @@ export const createUsuario = async (req, res) => {
             correo: correo.trim().toLowerCase()
         };
         const hashedPassword = await bcrypt.hash(contrasena, 12);
-        const [result] = await db.promise().query(
+        const [result] = await db.query(
             `INSERT INTO Usuarios (nombre, edad, rol, peso, altura, deporte, correo, contrasena)
              VALUES (?, ?, ?, ?, ?, ?, ?, ?)`,
             [cleanData.nombre, edad, cleanData.rol, peso, altura, cleanData.deporte, cleanData.correo, hashedPassword]
@@ -90,7 +90,7 @@ export const loginUsuario = async (req, res) => {
         const { correo, contrasena } = req.body;
         if (!correo || !contrasena) return res.status(400).json({ msg: "Faltan credenciales" });
         if (!validator.isEmail(correo)) return res.status(400).json({ msg: "Correo inválido" });
-        const [rows] = await db.promise().query("SELECT * FROM Usuarios WHERE correo = ?", [correo.trim().toLowerCase()]);
+        const [rows] = await db.query("SELECT * FROM Usuarios WHERE correo = ?", [correo.trim().toLowerCase()]);
         if (rows.length === 0) return res.status(401).json({ msg: "Correo o contraseña incorrectos" });
         const usuario = rows[0];
         const match = await bcrypt.compare(contrasena, usuario.contrasena);
@@ -102,7 +102,7 @@ export const loginUsuario = async (req, res) => {
 
         // Guardar token en la tabla Tokens
         const fechaExpiracion = new Date(Date.now() + 3600000); // 1 hora en milisegundos
-        await db.promise().query(
+        await db.query(
             `INSERT INTO Tokens (id_usuario, token, fecha_expiracion)
              VALUES (?, ?, ?)`,
             [usuario.id_usuario, token, fechaExpiracion]
@@ -124,7 +124,7 @@ export const updateUsuario = async (req, res) => {
         if (isNaN(id)) return res.status(400).json({ msg: "ID inválido" });
         const { nombre, edad, rol, peso, altura, deporte, correo, contrasena } = req.body;
         const hashedPassword = contrasena ? await bcrypt.hash(contrasena, 12) : undefined;
-        const [result] = await db.promise().query(
+        const [result] = await db.query(
             `UPDATE Usuarios
              SET nombre=?, edad=?, rol=?, peso=?, altura=?, deporte=?, correo=?, contrasena=COALESCE(?, contrasena)
              WHERE id_usuario=?`,
@@ -149,9 +149,9 @@ export const deleteUsuario = async (req, res) => {
         const id = parseInt(req.params.id, 10);
         if (isNaN(id)) return res.status(400).json({ msg: "ID inválido" });
         // Eliminar tokens asociados
-        await db.promise().query("DELETE FROM Tokens WHERE id_usuario = ?", [id]);
+        await db.query("DELETE FROM Tokens WHERE id_usuario = ?", [id]);
         // Eliminar usuario
-        const [result] = await db.promise().query(
+        const [result] = await db.query(
             "DELETE FROM Usuarios WHERE id_usuario = ?",
             [id]
         );

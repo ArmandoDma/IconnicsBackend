@@ -4,7 +4,7 @@ import db from '../config/db.js';
 // Obtener todas las alertas
 export const getAlertas = async (req, res) => {
   try {
-    const [rows] = await db.promise().query("SELECT * FROM Alertas");
+    const [rows] = await db.query("SELECT * FROM Alertas");
     res.json(rows); // devuelve [] si no hay alertas
   } catch (error) {
     console.error(error);
@@ -15,7 +15,7 @@ export const getAlertas = async (req, res) => {
 // Obtener una alerta por ID
 export const getAlertaById = async (req, res) => {
   try {
-    const [rows] = await db.promise().query(
+    const [rows] = await db.query(
       "SELECT * FROM Alertas WHERE id_alerta = ?",
       [req.params.id]
     );
@@ -32,7 +32,7 @@ export const getAlertaById = async (req, res) => {
 export const createAlerta = async (req, res) => {
   try {
     const { id_usuario, tipo_alerta, nivel_riesgo, mensaje, fecha_hora } = req.body;
-    const [result] = await db.promise().query(
+    const [result] = await db.query(
       "INSERT INTO Alertas (id_usuario, tipo_alerta, nivel_riesgo, mensaje, fecha_hora) VALUES (?, ?, ?, ?, ?)",
       [id_usuario, tipo_alerta, nivel_riesgo, mensaje, fecha_hora]
     );
@@ -48,7 +48,7 @@ export const updateAlerta = async (req, res) => {
   try {
     const { id } = req.params;
     const { tipo_alerta, nivel_riesgo, mensaje, fecha_hora } = req.body;
-    const [result] = await db.promise().query(
+    const [result] = await db.query(
       "UPDATE Alertas SET tipo_alerta=?, nivel_riesgo=?, mensaje=?, fecha_hora=? WHERE id_alerta=?",
       [tipo_alerta, nivel_riesgo, mensaje, fecha_hora, id]
     );
@@ -67,7 +67,7 @@ export const updateAlerta = async (req, res) => {
 export const deleteAlerta = async (req, res) => {
   try {
     const { id } = req.params;
-    const [result] = await db.promise().query(
+    const [result] = await db.query(
       "DELETE FROM Alertas WHERE id_alerta = ?",
       [id]
     );

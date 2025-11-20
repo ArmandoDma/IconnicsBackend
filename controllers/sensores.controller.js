@@ -39,7 +39,7 @@ export const getDatosBPM = (req, res) => {
 // Rutas normales de sensores en la DB
 export const getSensores = async (req, res) => {
   try {
-    const [rows] = await db.promise().query("SELECT * FROM Sensores");
+    const [rows] = await db.query("SELECT * FROM Sensores");
     res.json(rows);
   } catch (error) {
     console.error(error);
@@ -49,7 +49,7 @@ export const getSensores = async (req, res) => {
 
 export const getSensorById = async (req, res) => {
   try {
-    const [rows] = await db.promise().query(
+    const [rows] = await db.query(
       "SELECT * FROM Sensores WHERE id_sensor = ?",
       [req.params.id]
     );
@@ -67,7 +67,7 @@ export const createSensor = async (req, res) => {
     const tipo_sensor = TIPO_SENSOR_FIJO;
     const id_zona = ID_ZONA_FIJA;
 
-    const [result] = await db.promise().query(
+    const [result] = await db.query(
       "INSERT INTO Sensores (tipo_sensor, ubicacion, estado, id_usuario, id_zona) VALUES (?, ?, ?, ?, ?)",
       [tipo_sensor, ubicacion, estado, id_usuario, id_zona]
     );
@@ -86,7 +86,7 @@ export const updateSensor = async (req, res) => {
     const tipo_sensor = TIPO_SENSOR_FIJO;
     const id_zona = ID_ZONA_FIJA;
 
-    const [result] = await db.promise().query(
+    const [result] = await db.query(
       "UPDATE Sensores SET tipo_sensor=?, ubicacion=?, estado=?, id_usuario=?, id_zona=? WHERE id_sensor=?",
       [tipo_sensor, ubicacion, estado, id_usuario, id_zona, id]
     );
@@ -104,7 +104,7 @@ export const updateSensor = async (req, res) => {
 export const deleteSensor = async (req, res) => {
   try {
     const { id } = req.params;
-    const [result] = await db.promise().query("DELETE FROM Sensores WHERE id_sensor=?", [id]);
+    const [result] = await db.query("DELETE FROM Sensores WHERE id_sensor=?", [id]);
 
     if (result.affectedRows === 0)
       return res.status(404).json({ msg: "Sensor no encontrado" });

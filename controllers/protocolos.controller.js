@@ -2,7 +2,7 @@ import db from '../config/db.js';
 
 export const getProtocolos = async (req, res) => {
   try {
-    const [rows] = await db.promise().query("SELECT * FROM Protocolos");
+    const [rows] = await db.query("SELECT * FROM Protocolos");
     res.json(rows);
   } catch (error) {
     console.error(error);
@@ -12,7 +12,7 @@ export const getProtocolos = async (req, res) => {
 
 export const getProtocoloById = async (req, res) => {
   try {
-    const [rows] = await db.promise().query("SELECT * FROM Protocolos WHERE id_protocolo = ?", [req.params.id]);
+    const [rows] = await db.query("SELECT * FROM Protocolos WHERE id_protocolo = ?", [req.params.id]);
     if (rows.length === 0) return res.status(404).json({ msg: "Protocolo no encontrado" });
     res.json(rows[0]);
   } catch (error) {
@@ -24,7 +24,7 @@ export const getProtocoloById = async (req, res) => {
 export const createProtocolo = async (req, res) => {
   try {
     const { nombre, descripcion, nivel_importancia } = req.body;
-    const [result] = await db.promise().query(
+    const [result] = await db.query(
       "INSERT INTO Protocolos (nombre, descripcion, nivel_importancia) VALUES (?, ?, ?)",
       [nombre, descripcion, nivel_importancia]
     );
@@ -39,7 +39,7 @@ export const updateProtocolo = async (req, res) => {
   try {
     const { id } = req.params;
     const { nombre, descripcion, nivel_importancia } = req.body;
-    const [result] = await db.promise().query(
+    const [result] = await db.query(
       "UPDATE Protocolos SET nombre=?, descripcion=?, nivel_importancia=? WHERE id_protocolo=?",
       [nombre, descripcion, nivel_importancia, id]
     );
@@ -54,7 +54,7 @@ export const updateProtocolo = async (req, res) => {
 export const deleteProtocolo = async (req, res) => {
   try {
     const { id } = req.params;
-    const [result] = await db.promise().query("DELETE FROM Protocolos WHERE id_protocolo=?", [id]);
+    const [result] = await db.query("DELETE FROM Protocolos WHERE id_protocolo=?", [id]);
     if (result.affectedRows === 0) return res.status(404).json({ msg: "Protocolo no encontrado" });
     res.json({ msg: "Protocolo eliminado correctamente" });
   } catch (error) {
