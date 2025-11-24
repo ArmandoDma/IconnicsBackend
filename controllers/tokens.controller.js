@@ -35,6 +35,25 @@ export const createToken = async (req, res) => {
   }
 };
 
+export const logoutToken = async (req, res) => {
+  try {
+    const { id_usuario } = req.params;
+
+    const [result] = await db.query(
+      "UPDATE Tokens SET activo = 0 WHERE id_usuario = ? AND activo = 1",
+      [id_usuario]
+    );
+
+    if (result.affectedRows === 0) {
+      return res.status(404).json({ msg: "No active token found for this user" });
+    }
+
+    res.json({ msg: "Sesión cerrada correctamente" });
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ msg: "Error al cerrar sesión", error });
+  }
+};
 export const updateToken = async (req, res) => {
   try {
     const { id } = req.params;
