@@ -3,6 +3,7 @@ import {
   getTokens,
   getTokenById,
   createToken,
+  logoutToken,
   updateToken,
   deleteToken
 } from "../controllers/tokens.controller.js";
