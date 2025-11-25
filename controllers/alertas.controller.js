@@ -1,5 +1,7 @@
 // Archivo: controllers/alertasController.js
+import {Expo} from 'expo-server-sdk';
 import db from '../config/db.js';
+
 
 // Obtener todas las alertas
 export const getAlertas = async (req, res) => {
@@ -32,11 +34,49 @@ export const getAlertaById = async (req, res) => {
 export const createAlerta = async (req, res) => {
   try {
     const { id_usuario, tipo_alerta, nivel_riesgo, mensaje, fecha_hora } = req.body;
+
+    // 1️⃣ Guardar alerta en la base de datos
     const [result] = await db.query(
       "INSERT INTO Alertas (id_usuario, tipo_alerta, nivel_riesgo, mensaje, fecha_hora) VALUES (?, ?, ?, ?, ?)",
       [id_usuario, tipo_alerta, nivel_riesgo, mensaje, fecha_hora]
     );
-    res.status(201).json({ msg: "Alerta creada correctamente", id: result.insertId });
+
+    const alertaId = result.insertId;
+
+    // 2️⃣ Traer el push token del usuario
+    const [tokensRows] = await db.query(
+      "SELECT push_token FROM Usuarios WHERE id_usuario = ?",
+      [id_usuario]
+    );
+
+    if (tokensRows.length > 0) {
+      const messages = [];
+
+      for (let row of tokensRows) {
+        const token = row.push_token;
+        if (!Expo.isExpoPushToken(token)) continue; // ignorar tokens inválidos
+
+        messages.push({
+          to: token,
+          sound: 'default',
+          title: `Alerta: ${tipo_alerta}`,
+          body: mensaje,
+          data: { alertaId },
+        });
+      }
+
+      // 3️⃣ Enviar notificaciones en chunks
+      const chunks = Expo.chunkPushNotifications(messages);
+      const tickets = [];
+      for (let chunk of chunks) {
+        const ticketChunk = await Expo.sendPushNotificationsAsync(chunk);
+        tickets.push(...ticketChunk);
+      }
+
+      console.log('Tickets enviados:', tickets);
+    }
+
+    res.status(201).json({ msg: "Alerta creada y notificación enviada", id: alertaId });
   } catch (error) {
     console.error(error);
     res.status(500).json({ msg: "Error al crear alerta", error });
