@@ -83,6 +83,31 @@ export const createUsuario = async (req, res) => {
         res.status(500).json({ msg: "Error al crear usuario" });
     }
 };
+//pushtokens users
+export const updatePushToken = async (req, res) => {
+  try {
+    const { userId, pushToken } = req.body;
+
+    if (!userId) {
+      return res.status(400).json({ msg: "El userId es requerido" });
+    }
+
+    // Actualizar el token
+    const [result] = await db.query(
+      "UPDATE Usuarios SET push_token = ? WHERE id_usuario = ?",
+      [pushToken || null, userId]
+    );
+
+    if (result.affectedRows === 0) {
+      return res.status(404).json({ msg: "Usuario no encontrado" });
+    }
+
+    res.json({ msg: pushToken ? "Token actualizado correctamente" : "Token eliminado correctamente" });
+  } catch (error) {
+    console.error("Error actualizando push token:", error);
+    res.status(500).json({ msg: "Error al actualizar push token", error });
+  }
+};
 
 // Login de usuario con generación de token
 export const loginUsuario = async (req, res) => {

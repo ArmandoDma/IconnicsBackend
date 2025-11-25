@@ -5,7 +5,8 @@ import {
   createUsuario,
   updateUsuario,
   deleteUsuario,
-  loginUsuario  // <-- importar login
+  loginUsuario,
+  updatePushToken
 } from "../controllers/auth.controller.js";
 
 const router = express.Router();
@@ -18,6 +19,9 @@ router.get("/:id", getUsuarioById);
 
 // Crear un nuevo usuario
 router.post("/", createUsuario);
+
+//actualizar push_token
+router.post("/token", updatePushToken);
 
 // Actualizar un usuario existente
 router.put("/:id", updateUsuario);

@@ -1,8 +1,8 @@
 // Archivo: controllers/alertasController.js
-import {Expo} from 'expo-server-sdk';
+import ExpoServerSdk from 'expo-server-sdk';
 import db from '../config/db.js';
 
-
+const expo = new ExpoServerSdk.Expo();
 // Obtener todas las alertas
 export const getAlertas = async (req, res) => {
   try {
@@ -54,7 +54,7 @@ export const createAlerta = async (req, res) => {
 
       for (let row of tokensRows) {
         const token = row.push_token;
-        if (!Expo.isExpoPushToken(token)) continue; // ignorar tokens inválidos
+        if (!ExpoServerSdk.Expo.isExpoPushToken(token)) continue;
 
         messages.push({
           to: token,
@@ -66,10 +66,10 @@ export const createAlerta = async (req, res) => {
       }
 
       // 3️⃣ Enviar notificaciones en chunks
-      const chunks = Expo.chunkPushNotifications(messages);
+      const chunks = expo.chunkPushNotifications(messages);
       const tickets = [];
       for (let chunk of chunks) {
-        const ticketChunk = await Expo.sendPushNotificationsAsync(chunk);
+        const ticketChunk = await expo.sendPushNotificationsAsync(chunk);
         tickets.push(...ticketChunk);
       }
 
