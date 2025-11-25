@@ -31,7 +31,7 @@ export const getUsuarioById = async (req, res) => {
         const id = parseInt(req.params.id, 10);
         if (isNaN(id)) return res.status(400).json({ msg: "ID inválido" });
         const [rows] = await db.query(
-            "SELECT id_usuario, nombre, edad, rol, peso, altura, deporte, correo, contrasena FROM Usuarios WHERE id_usuario = ?",
+            "SELECT id_usuario, nombre, edad, rol, peso, altura, deporte, correo, contrasena, push_token FROM Usuarios WHERE id_usuario = ?",
             [id]
         );
         if (rows.length === 0)
